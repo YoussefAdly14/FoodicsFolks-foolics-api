@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres
+    container_name: foolix-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: foolix
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - foolix-network
+
+  backend:
+    build: .
+    image: youssefadly/foolix-backend:latest
+    container_name: foolix-backend
+    env_file:
+      - .env.docker
+    ports:
+      - '3000:3000'
+    depends_on:
+      - db
+    networks:
+      - foolix-network
+    command: >
+      sh -c "npx prisma generate &&
+             npx prisma migrate deploy &&
+             npm run dev"
+
+volumes:
+  pgdata:
+
+networks:
+  foolix-network:
+    driver: bridge
